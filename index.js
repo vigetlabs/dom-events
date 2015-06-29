@@ -1,13 +1,33 @@
-
 var synth = require('synthetic-dom-events');
 
-var on = function(element, name, fn, capture) {
-    return element.addEventListener(name, fn, capture || false);
-};
+function isObject(item) {
+    return (Object.prototype.toString.call(item) == '[object Object]');
+}
 
-var off = function(element, name, fn, capture) {
-    return element.removeEventListener(name, fn, capture || false);
-};
+function createHandler(name, fn, prefix) {
+    prefix = prefix || '';
+
+    var handler = function (element, name, callback, capture) {
+        // if a hash of events and callbacks were passed
+        if (isObject(name)) {
+            var events = name;
+            capture = callback;
+
+            for (var key in events) {
+                element[fn](prefix + key, events[key], capture || false);
+            }
+        } else {
+            return element[fn](prefix + name, callback, capture || false);
+        }
+    }
+
+    handler.name = name;
+
+    return handler;
+}
+
+var on  = createHandler('on', 'addEventListener');
+var off = createHandler('off', 'removeEventListener');
 
 var once = function (element, name, fn, capture) {
     function tmp (ev) {
@@ -23,15 +43,11 @@ var emit = function(element, name, opt) {
 };
 
 if (!document.addEventListener) {
-    on = function(element, name, fn) {
-        return element.attachEvent('on' + name, fn);
-    };
+    on = createHandler('on', 'attachEvent', 'on');
 }
 
 if (!document.removeEventListener) {
-    off = function(element, name, fn) {
-        return element.detachEvent('on' + name, fn);
-    };
+    off = createHandler('off', 'detachEvent', 'on');
 }
 
 if (!document.dispatchEvent) {
