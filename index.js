@@ -7,17 +7,17 @@ function isObject(item) {
 function createHandler(name, fn, prefix) {
     prefix = prefix || '';
 
-    var handler = function (element, name, callback, capture) {
+    var handler = function (element, evName, callback, capture) {
         // if a hash of events and callbacks were passed
-        if (isObject(name)) {
-            var events = name;
+        if (isObject(evName)) {
+            var events = evName;
             capture = callback;
 
             for (var key in events) {
                 element[fn](prefix + key, events[key], capture || false);
             }
         } else {
-            return element[fn](prefix + name, callback, capture || false);
+            return element[fn](prefix + evName, callback, capture || false);
         }
     }
 
